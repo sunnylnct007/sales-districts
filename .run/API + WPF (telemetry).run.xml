@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="API + WPF (telemetry)" type="CompoundRunConfigurationType">
+    <toRun name="Start telemetry dashboard" type="ShConfigurationType" />
+    <toRun name="SalesDistricts.Api: https + telemetry" type="LaunchSettings" />
+    <toRun name="SalesDistricts.Wpf" type="DotNetProject" />
+    <method v="2" />
+  </configuration>
+</component>

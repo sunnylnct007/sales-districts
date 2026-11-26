@@ -11,7 +11,7 @@ Salespeople, districts and stores. A district always has exactly one primary sal
 **Prerequisites:** Windows, the .NET 10 SDK, and SQL Server Express (or any SQL Server; change the connection string in `src/SalesDistricts.Api/appsettings.Development.json`). Docker is needed only for the integration tests.
 
 1. Open `SalesDistricts.slnx` in Rider or Visual Studio.
-2. Run the compound configuration in `.run/`, which starts the API and the WPF app together.
+2. Run **API + WPF** (in `.run/`), which starts the API and the WPF app together. **API + WPF (telemetry)** also starts the telemetry dashboard.
 3. On first start the API creates the `SalesDistricts` database and loads the test data.
 
 From the command line:
@@ -92,7 +92,7 @@ Reads require the `CanViewDistricts` policy and writes also `CanEditAssignments`
 - **OpenTelemetry** traces and metrics for incoming requests, outgoing HTTP and SQL Server calls. They are exported over OTLP when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, so any backend that accepts OTLP works.
 - **Structured logs** carry the trace id of their request; outside Development they are written as JSON.
 - **Business events** (secondary added or removed, primary replaced) are logged with the district and salesperson ids.
-- **Locally:** run `tools/start-telemetry.ps1` (it starts Docker Desktop if needed, then the Aspire dashboard from `compose.yaml`) and start the API with the `https + telemetry` profile. Logs, traces and metrics appear at `http://localhost:18888`.
+- **Locally:** run **API + WPF (telemetry)**. It runs `tools/start-telemetry.ps1` (which starts Docker Desktop if needed, then the Aspire dashboard from `compose.yaml`) and the API with the `https + telemetry` profile. Logs, traces and metrics appear at `http://localhost:18888`.
 - **Health checks:** `/health/live` (the process answers) and `/health/ready` (the database is reachable), for an orchestrator such as Kubernetes.
 
 ## Tests
