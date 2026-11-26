@@ -92,5 +92,4 @@ public sealed class DistrictService(
         [.. district.Stores.Select(s => new StoreDto(s.StoreId, s.Name))]);
 
     private static SalespersonDto ToDto(SalespersonRecord salesperson) => new(salesperson.SalespersonId, salesperson.Name);
-
 }
