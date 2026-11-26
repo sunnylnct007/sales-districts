@@ -92,6 +92,7 @@ Reads require the `CanViewDistricts` policy and writes also `CanEditAssignments`
 - **OpenTelemetry** traces and metrics for incoming requests, outgoing HTTP and SQL Server calls. They are exported over OTLP when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, so any backend that accepts OTLP works.
 - **Structured logs** carry the trace id of their request; outside Development they are written as JSON.
 - **Business events** (secondary added or removed, primary replaced) are logged with the district and salesperson ids.
+- **Locally:** run `tools/start-telemetry.ps1` (it starts Docker Desktop if needed, then the Aspire dashboard from `compose.yaml`) and start the API with the `https + telemetry` profile. Logs, traces and metrics appear at `http://localhost:18888`.
 - **Health checks:** `/health/live` (the process answers) and `/health/ready` (the database is reachable), for an orchestrator such as Kubernetes.
 
 ## Tests

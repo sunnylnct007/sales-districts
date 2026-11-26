@@ -10,15 +10,26 @@ services:
     volumes:
       - sql-data:/var/opt/mssql
 
+  # Logs, traces and metrics on http://localhost:18888; accepts OTLP on port 4317.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"   # local development only
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+
   salesdistricts-api:
     image: salesdistricts-api
     depends_on:
       - sqlserver
+      - aspire-dashboard
     ports:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Districts: Server=sqlserver;Database=SalesDistricts;User Id=sa;Password=Local_dev_Pass123;TrustServerCertificate=True
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
 
 volumes:
   sql-data:

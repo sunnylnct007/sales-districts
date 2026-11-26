@@ -10,6 +10,17 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "launchUrl": "scalar"
+    },
+    "https + telemetry": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7217;http://localhost:5260",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317"
+      },
+      "launchUrl": "scalar"
     }
   }
 }
