@@ -45,4 +45,15 @@ public sealed class EndpointTests(ApiFactory api) : IClassFixture<ApiFactory>
         Assert.Equal(7, salespeople!.Count);
         Assert.Equal(new SalespersonDto(1, "Anna Jensen"), salespeople[0]);
     }
+
+    [Theory]
+    [InlineData("/health/live")]
+    [InlineData("/health/ready")]
+    public async Task Health_endpoints_report_healthy(string url)
+    {
+        var response = await _client.GetAsync(url, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Healthy", await response.Content.ReadAsStringAsync(Ct));
+    }
 }

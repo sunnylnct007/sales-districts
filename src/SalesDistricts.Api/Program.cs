@@ -3,6 +3,7 @@ using SalesDistricts.Api.Data;
 using SalesDistricts.Api.Database;
 using SalesDistricts.Api.Endpoints;
 using SalesDistricts.Api.Errors;
+using SalesDistricts.Api.Observability;
 using SalesDistricts.Api.Services;
 using Scalar.AspNetCore;
 
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("Districts")
     ?? throw new InvalidOperationException("Connection string 'Districts' is missing.");
 
+builder.AddObservability();
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddValidation();
@@ -37,6 +39,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthEndpoints();
 app.MapDistrictEndpoints();
 app.MapSalespersonEndpoints();
 

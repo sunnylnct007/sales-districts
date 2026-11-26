@@ -12,7 +12,8 @@ public interface IDistrictService
     Task<AssignmentResult> ReplacePrimaryAsync(int districtId, int salespersonId, CancellationToken ct);
 }
 
-public sealed class DistrictService(IDistrictRepository repository, ISalespersonRepository salespeople) : IDistrictService
+public sealed partial class DistrictService(
+    IDistrictRepository repository, ISalespersonRepository salespeople, ILogger<DistrictService> logger) : IDistrictService
 {
     public async Task<IReadOnlyList<DistrictSummaryDto>> GetDistrictsAsync(CancellationToken ct)
     {
@@ -40,6 +41,7 @@ public sealed class DistrictService(IDistrictRepository repository, ISalesperson
             return new AssignmentResult.Conflict("Salesperson is already a secondary in this district.");
 
         await repository.AddSecondaryAsync(districtId, salespersonId, ct);
+        Log.SecondaryAdded(logger, districtId, salespersonId);
         return await Updated(districtId, ct);
     }
 
@@ -52,6 +54,7 @@ public sealed class DistrictService(IDistrictRepository repository, ISalesperson
             return new AssignmentResult.NotFound("Salesperson is not a secondary in this district.");
 
         await repository.RemoveSecondaryAsync(districtId, salespersonId, ct);
+        Log.SecondaryRemoved(logger, districtId, salespersonId);
         return await Updated(districtId, ct);
     }
 
@@ -68,6 +71,7 @@ public sealed class DistrictService(IDistrictRepository repository, ISalesperson
             return new AssignmentResult.Success(ToDto(district));   // already the primary: nothing to do
 
         await repository.ReplacePrimaryAsync(districtId, salespersonId, ct);
+        Log.PrimaryReplaced(logger, districtId, district.Primary.SalespersonId, salespersonId);
         return await Updated(districtId, ct);
     }
 
@@ -87,4 +91,16 @@ public sealed class DistrictService(IDistrictRepository repository, ISalesperson
         [.. district.Stores.Select(s => new StoreDto(s.StoreId, s.Name))]);
 
     private static SalespersonDto ToDto(SalespersonRecord salesperson) => new(salesperson.SalespersonId, salesperson.Name);
+
+    private static partial class Log
+    {
+        [LoggerMessage(Level = LogLevel.Information, Message = "Added salesperson {SalespersonId} as a secondary in district {DistrictId}")]
+        public static partial void SecondaryAdded(ILogger logger, int districtId, int salespersonId);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Removed secondary salesperson {SalespersonId} from district {DistrictId}")]
+        public static partial void SecondaryRemoved(ILogger logger, int districtId, int salespersonId);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Replaced primary of district {DistrictId}: {PreviousPrimaryId} -> {NewPrimaryId}")]
+        public static partial void PrimaryReplaced(ILogger logger, int districtId, int previousPrimaryId, int newPrimaryId);
+    }
 }

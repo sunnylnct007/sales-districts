@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using SalesDistricts.Api.Contracts;
 using SalesDistricts.Api.Data;
@@ -17,7 +18,7 @@ public sealed class DistrictServiceTests
 
     public DistrictServiceTests()
     {
-        _service = new DistrictService(_districts, _salespeople);
+        _service = new DistrictService(_districts, _salespeople, NullLogger<DistrictService>.Instance);
 
         // Capital Region: Carl is primary, Bo is secondary. Gustav exists but has no district.
         _districts.GetDetailAsync(CapitalRegion, Arg.Any<CancellationToken>()).Returns(new DistrictDetail(
