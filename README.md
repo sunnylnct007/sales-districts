@@ -75,7 +75,7 @@ Not enforced on purpose: that every salesperson belongs to a district. It would 
 
 There is deliberately no way to delete a primary: it can only be replaced. Writes return the updated district.
 
-Errors are ProblemDetails: 400 invalid request, 404 unknown district or assignment, 422 unknown salesperson, 409 a rule conflict. The service checks the rules first for a clear message; the database is the safety net for concurrent changes, and its errors are also returned as 409.
+Errors are ProblemDetails: 400 invalid request, 404 unknown district or assignment, 422 unknown salesperson, 409 a rule conflict. The service checks the rules first and returns a clear message. The database enforces the same rules as a safety net; in the rare case where two simultaneous requests both pass the service's checks, the second is rejected by the database and returned as a 500.
 
 Reads require the `CanViewDistricts` policy and writes also `CanEditAssignments` (the `SalesManager` role from an Entra ID token).
 

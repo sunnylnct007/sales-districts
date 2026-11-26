@@ -30,7 +30,6 @@ public static class DistrictEndpoints
             .RequireAuthorization(Policies.CanEditAssignments)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
     }
 
