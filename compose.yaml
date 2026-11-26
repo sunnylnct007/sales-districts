@@ -1,0 +1,24 @@
+# Build the API image first: dotnet publish src/SalesDistricts.Api -c Release -t:PublishContainer
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: Local_dev_Pass123   # local development only
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+
+  salesdistricts-api:
+    image: salesdistricts-api
+    depends_on:
+      - sqlserver
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Districts: Server=sqlserver;Database=SalesDistricts;User Id=sa;Password=Local_dev_Pass123;TrustServerCertificate=True
+
+volumes:
+  sql-data:

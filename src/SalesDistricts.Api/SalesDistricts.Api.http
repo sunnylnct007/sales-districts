@@ -1,0 +1,40 @@
+@host = https://localhost:7217
+
+### District list
+GET {{host}}/api/districts
+Accept: application/json
+
+### One district with its salespeople and stores
+GET {{host}}/api/districts/5
+Accept: application/json
+
+### Salespeople (for the "add salesperson" picker)
+GET {{host}}/api/salespeople
+Accept: application/json
+
+### Add Gustav (7) as a secondary in Zealand (4)
+POST {{host}}/api/districts/4/secondaries
+Content-Type: application/json
+
+{ "salespersonId": 7 }
+
+### Remove him again
+DELETE {{host}}/api/districts/4/secondaries/7
+
+### Rejected: Anna (1) is already the primary of North Denmark (1)
+POST {{host}}/api/districts/1/secondaries
+Content-Type: application/json
+
+{ "salespersonId": 1 }
+
+### Make Gustav (7) the primary of Zealand (4); Freja leaves the district
+PUT {{host}}/api/districts/4/primary
+Content-Type: application/json
+
+{ "salespersonId": 7 }
+
+### Put Freja (6) back as primary
+PUT {{host}}/api/districts/4/primary
+Content-Type: application/json
+
+{ "salespersonId": 6 }

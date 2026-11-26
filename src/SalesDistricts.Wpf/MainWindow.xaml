@@ -1,0 +1,121 @@
+<Window x:Class="SalesDistricts.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SalesDistricts.Client.ViewModels;assembly=SalesDistricts.Client"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        Title="Sales Districts" Height="640" Width="1000">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Padding" Value="8" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="0,6,8,0" />
+            <Setter Property="Padding" Value="10,4" />
+        </Style>
+        <Style x:Key="Error" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Firebrick" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- District list -->
+        <DockPanel Grid.Column="0" Margin="0,0,12,0">
+            <TextBlock DockPanel.Dock="Top" Text="Districts" FontSize="20" FontWeight="SemiBold" />
+            <ProgressBar DockPanel.Dock="Top" Height="3" IsIndeterminate="True"
+                         Visibility="{Binding LoadCommand.IsRunning, Converter={StaticResource BoolToVisibility}}" />
+            <TextBlock DockPanel.Dock="Top" Style="{StaticResource Error}" Text="{Binding ErrorMessage}" />
+
+            <ListBox Margin="0,8,0,0" ItemsSource="{Binding Districts}" SelectedItem="{Binding SelectedDistrict}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="vm:DistrictItemViewModel">
+                        <StackPanel Margin="0,4">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                            <TextBlock Foreground="Gray" Text="{Binding PrimarySalesperson, StringFormat=Primary: {0}}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <!-- Selected district -->
+        <Grid Grid.Column="1" DataContext="{Binding Detail}">
+            <TextBlock Text="Select a district to see its salespeople and stores." Foreground="Gray">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding District}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding District}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
+
+                <StackPanel>
+                    <TextBlock Text="{Binding District.Name}" FontSize="22" FontWeight="SemiBold" />
+                    <ProgressBar Height="3" IsIndeterminate="True"
+                                 Visibility="{Binding LoadCommand.IsRunning, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Style="{StaticResource Error}" Text="{Binding ErrorMessage}" />
+
+                    <GroupBox Header="Primary salesperson">
+                        <TextBlock Text="{Binding District.Primary.Name}" FontSize="14" />
+                    </GroupBox>
+
+                    <GroupBox Header="Secondary salespeople">
+                        <StackPanel>
+                            <ListBox MinHeight="60" MaxHeight="160" DisplayMemberPath="Name"
+                                     ItemsSource="{Binding District.Secondaries}"
+                                     SelectedItem="{Binding SelectedSecondary}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Remove" Command="{Binding RemoveSecondaryCommand}" />
+                                <Button Content="Make primary" Command="{Binding PromoteSecondaryCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Add a salesperson">
+                        <StackPanel>
+                            <ComboBox DisplayMemberPath="Name"
+                                      ItemsSource="{Binding AvailableSalespeople}"
+                                      SelectedItem="{Binding SelectedSalesperson}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Add as secondary" Command="{Binding AddSecondaryCommand}" />
+                                <Button Content="Make primary" Command="{Binding MakePrimaryCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Stores">
+                        <ItemsControl ItemsSource="{Binding District.Stores}" DisplayMemberPath="Name" />
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore SalesDistricts.slnx
+
+      - name: Build
+        run: dotnet build SalesDistricts.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test SalesDistricts.slnx --configuration Release --no-build
+
+      - name: Publish API
+        run: dotnet publish src/SalesDistricts.Api --configuration Release --no-build --output artifacts/api
+
+      - name: Build container image
+        run: >
+          dotnet publish src/SalesDistricts.Api --configuration Release
+          -t:PublishContainer
+          -p:ContainerImageTag=${{ github.sha }}
+          -p:ContainerArchiveOutputPath=${{ github.workspace }}/artifacts/salesdistricts-api.tar
+
+      - name: Upload API
+        uses: actions/upload-artifact@v7
+        with:
+          name: salesdistricts-api
+          path: artifacts/api
+          retention-days: 14
+
+      - name: Upload container image
+        uses: actions/upload-artifact@v7
+        with:
+          name: salesdistricts-api-image
+          path: artifacts/salesdistricts-api.tar
+          retention-days: 14

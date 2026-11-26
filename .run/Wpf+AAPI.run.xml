@@ -1,0 +1,7 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Wpf+AAPI" type="CompoundRunConfigurationType">
+    <toRun name="SalesDistricts.Api: https" type="LaunchSettings" />
+    <toRun name="SalesDistricts.Wpf" type="DotNetProject" />
+    <method v="2" />
+  </configuration>
+</component>

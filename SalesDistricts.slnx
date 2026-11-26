@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SalesDistricts.Api/SalesDistricts.Api.csproj" />
+    <Project Path="src/SalesDistricts.Client/SalesDistricts.Client.csproj" />
+    <Project Path="src/SalesDistricts.Wpf/SalesDistricts.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SalesDistricts.Api.IntegrationTests/SalesDistricts.Api.IntegrationTests.csproj" />
+    <Project Path="tests/SalesDistricts.Api.UnitTests/SalesDistricts.Api.UnitTests.csproj" />
+    <Project Path="tests/SalesDistricts.Client.Tests/SalesDistricts.Client.Tests.csproj" />
+  </Folder>
+</Solution>
