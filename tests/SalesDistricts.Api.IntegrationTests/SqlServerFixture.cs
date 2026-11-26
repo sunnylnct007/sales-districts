@@ -2,8 +2,12 @@ using Microsoft.Data.SqlClient;
 using SalesDistricts.Api.Database;
 using SalesDistricts.Api.IntegrationTests;
 using Testcontainers.MsSql;
+using Xunit.Sdk;
+using Xunit.v3;
 
 [assembly: AssemblyFixture(typeof(SqlServerFixture))]
+// Test classes share one database, so run them one at a time: no blocking or deadlocks between them.
+[assembly: Parallelization(Mode = ParallelMode.None)]
 
 namespace SalesDistricts.Api.IntegrationTests;
 

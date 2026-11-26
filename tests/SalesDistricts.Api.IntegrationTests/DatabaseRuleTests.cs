@@ -3,7 +3,8 @@ using Microsoft.Data.SqlClient;
 
 namespace SalesDistricts.Api.IntegrationTests;
 
-// Seed data: Anna (1) is primary of North Denmark (1); Bo (2) is a secondary there; Gustav (7) has no district.
+// Seed data: Anna (1) is primary of North Denmark (1) and Southern Denmark (3); Bo (2) is a secondary in North Denmark;
+// Gustav (7) has no district. The API write tests use Zealand (4), so these tests leave it alone.
 // Every test runs inside a transaction that is rolled back, so the seed data never changes.
 public sealed class DatabaseRuleTests(SqlServerFixture database) : IAsyncLifetime
 {
@@ -41,7 +42,7 @@ public sealed class DatabaseRuleTests(SqlServerFixture database) : IAsyncLifetim
     [Fact]
     public async Task Salesperson_can_be_primary_of_several_districts()
     {
-        await Execute("UPDATE dbo.District SET PrimarySalespersonId = 1 WHERE DistrictId = 4");
+        await Execute("UPDATE dbo.District SET PrimarySalespersonId = 1 WHERE DistrictId = 2");
 
         var count = await _connection.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM dbo.District WHERE PrimarySalespersonId = 1", transaction: _transaction);
