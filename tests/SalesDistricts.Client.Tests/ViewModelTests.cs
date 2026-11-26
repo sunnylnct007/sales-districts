@@ -1,4 +1,6 @@
 using System.Net;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SalesDistricts.Client.Api;
@@ -18,6 +20,7 @@ public sealed class ViewModelTests
 
     private readonly IDistrictApiClient _api = Substitute.For<IDistrictApiClient>();
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
+    private readonly FakeLogger<MainViewModel> _mainLogger = new();
     private readonly MainViewModel _main;
 
     public ViewModelTests()
@@ -27,7 +30,7 @@ public sealed class ViewModelTests
         _api.GetSalespeopleAsync(Arg.Any<CancellationToken>()).Returns([Anna, Bo, Carl, Gustav]);
         _api.GetDistrictAsync(5, Arg.Any<CancellationToken>()).Returns(CapitalRegion);
 
-        _main = new MainViewModel(_api, new DistrictDetailViewModel(_api, _dialogs));
+        _main = new MainViewModel(_api, new DistrictDetailViewModel(_api, _dialogs, new FakeLogger<DistrictDetailViewModel>()), _mainLogger);
     }
 
     private DistrictDetailViewModel Detail => _main.Detail;
@@ -131,5 +134,30 @@ public sealed class ViewModelTests
         await _main.LoadCommand.ExecuteAsync(null);
 
         Assert.Equal("Can't reach the server. Check your connection and try again.", _main.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task An_unexpected_error_is_shown_and_logged()
+    {
+        _api.GetDistrictsAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new InvalidOperationException("bug"));
+
+        await _main.LoadCommand.ExecuteAsync(null);
+
+        Assert.Equal("Something went wrong. Please try again.", _main.ErrorMessage);
+        var entry = Assert.Single(_mainLogger.Collector.GetSnapshot());
+        Assert.Equal(LogLevel.Error, entry.Level);
+        Assert.IsType<InvalidOperationException>(entry.Exception);
+    }
+
+    [Fact]
+    public async Task An_expected_api_error_is_shown_but_not_logged()
+    {
+        _api.GetDistrictsAsync(Arg.Any<CancellationToken>())
+            .ThrowsAsync(new ApiException(HttpStatusCode.NotFound, "Not found."));
+
+        await _main.LoadCommand.ExecuteAsync(null);
+
+        Assert.Equal("Not found.", _main.ErrorMessage);
+        Assert.Empty(_mainLogger.Collector.GetSnapshot());
     }
 }

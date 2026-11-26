@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SalesDistricts.Client.Api;
 using SalesDistricts.Client.Services;
 
 namespace SalesDistricts.Client.ViewModels;
 
-public sealed partial class DistrictDetailViewModel(IDistrictApiClient api, IDialogService dialogs) : ObservableObject
+public sealed partial class DistrictDetailViewModel(
+    IDistrictApiClient api, IDialogService dialogs, ILogger<DistrictDetailViewModel> logger) : ViewModelBase(logger)
 {
     private IReadOnlyList<SalespersonDto> _allSalespeople = [];
     private CancellationTokenSource? _loadCancellation;
@@ -27,9 +29,6 @@ public sealed partial class DistrictDetailViewModel(IDistrictApiClient api, IDia
     [NotifyCanExecuteChangedFor(nameof(RemoveSecondaryCommand), nameof(PromoteSecondaryCommand))]
     public partial SalespersonDto? SelectedSecondary { get; set; }
 
-    [ObservableProperty]
-    public partial string? ErrorMessage { get; set; }
-
     // Everyone not yet in the district: the choices for "add as secondary" and "make primary".
     public IReadOnlyList<SalespersonDto> AvailableSalespeople => District is { } district
         ? [.. _allSalespeople.Where(s => s.Id != district.Primary.Id && district.Secondaries.All(x => x.Id != s.Id))]
@@ -37,29 +36,21 @@ public sealed partial class DistrictDetailViewModel(IDistrictApiClient api, IDia
 
     // A newer selection cancels the previous load, so a slow response can't overwrite it.
     [RelayCommand(AllowConcurrentExecutions = true)]
-    private async Task LoadAsync(int districtId)
+    private Task LoadAsync(int districtId)
     {
         _loadCancellation?.Cancel();
-        var cancellation = _loadCancellation = new CancellationTokenSource();
-        ErrorMessage = null;
+        var ct = (_loadCancellation = new CancellationTokenSource()).Token;
 
-        try
+        return RunAsync(async () =>
         {
             if (_allSalespeople.Count == 0)
-                _allSalespeople = await api.GetSalespeopleAsync(cancellation.Token);
+                _allSalespeople = await api.GetSalespeopleAsync(ct);
 
-            var district = await api.GetDistrictAsync(districtId, cancellation.Token);
+            var district = await api.GetDistrictAsync(districtId, ct);
             SelectedSalesperson = null;
             SelectedSecondary = null;
             District = district;
-        }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-        {
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = UserMessage.For(ex);
-        }
+        });
     }
 
     [RelayCommand(CanExecute = nameof(CanUseSelectedSalesperson))]
@@ -101,23 +92,12 @@ public sealed partial class DistrictDetailViewModel(IDistrictApiClient api, IDia
     }
 
     // The screen only changes once the server confirms; on error it keeps showing what the server last said.
-    private async Task ChangeAsync(Func<Task<DistrictDetailDto>> change)
+    private Task ChangeAsync(Func<Task<DistrictDetailDto>> change) => RunAsync(async () =>
     {
-        ErrorMessage = null;
-        try
-        {
-            var updated = await change();
-            SelectedSalesperson = null;
-            SelectedSecondary = null;
-            District = updated;
-            DistrictUpdated?.Invoke(updated);
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = UserMessage.For(ex);
-        }
-    }
+        var updated = await change();
+        SelectedSalesperson = null;
+        SelectedSecondary = null;
+        District = updated;
+        DistrictUpdated?.Invoke(updated);
+    });
 }

@@ -1,15 +1,17 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SalesDistricts.Client.Api;
 
 namespace SalesDistricts.Client.ViewModels;
 
-public sealed partial class MainViewModel : ObservableObject
+public sealed partial class MainViewModel : ViewModelBase
 {
     private readonly IDistrictApiClient _api;
 
-    public MainViewModel(IDistrictApiClient api, DistrictDetailViewModel detail)
+    public MainViewModel(IDistrictApiClient api, DistrictDetailViewModel detail, ILogger<MainViewModel> logger)
+        : base(logger)
     {
         _api = api;
         Detail = detail;
@@ -23,28 +25,14 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial DistrictItemViewModel? SelectedDistrict { get; set; }
 
-    [ObservableProperty]
-    public partial string? ErrorMessage { get; set; }
-
     [RelayCommand]
-    private async Task LoadAsync(CancellationToken ct)
+    private Task LoadAsync(CancellationToken ct) => RunAsync(async () =>
     {
-        ErrorMessage = null;
-        try
-        {
-            var districts = await _api.GetDistrictsAsync(ct);
-            Districts.Clear();
-            foreach (var district in districts)
-                Districts.Add(new DistrictItemViewModel(district.Id, district.Name, district.PrimarySalesperson));
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = UserMessage.For(ex);
-        }
-    }
+        var districts = await _api.GetDistrictsAsync(ct);
+        Districts.Clear();
+        foreach (var district in districts)
+            Districts.Add(new DistrictItemViewModel(district.Id, district.Name, district.PrimarySalesperson));
+    });
 
     partial void OnSelectedDistrictChanged(DistrictItemViewModel? value)
     {
